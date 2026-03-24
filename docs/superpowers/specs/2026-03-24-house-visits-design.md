@@ -34,6 +34,7 @@ A production-ready web application for managing house visit orders. Workers rece
 - **State Management:** React Context for user session
 - **Forms:** React Hook Form + Zod validation
 - **Excel Export:** SheetJS (xlsx)
+- **Password Hashing:** bcryptjs
 - **Deployment:** Railway or Render (free tier)
 
 ### Rationale
@@ -187,9 +188,9 @@ Optional future enhancement: Admin page to manage users.
 ### Project Structure
 
 ```
+/middleware.ts             # Next.js middleware for session validation (root level)
 /app
   layout.tsx                 # Root layout with auth middleware
-  middleware.ts              # Next.js middleware for session validation
   /login
     page.tsx                 # Name selection login page
   /days
@@ -389,11 +390,12 @@ Each visit displayed as a stacked card:
 **Validation:**
 - All fields required
 - At least one product must be selected
-- Phone format validation: Israeli phone numbers
+- Phone format validation: Israeli phone numbers (validated with Zod custom regex)
   - Mobile: 10 digits starting with 05 (e.g., 0501234567, 050-123-4567)
   - Landline: 7-9 digits with area codes 02/03/04/08/09 (e.g., 02-1234567)
   - Also accept international format: +972-50-123-4567
   - Strip dashes/spaces before validation
+  - Regex pattern: `^(\+972|0)[-\s]?([23489]|5[0-9])[-\s]?\d{3}[-\s]?\d{4}$` (after stripping spaces/dashes)
 
 **Submit flow:**
 1. Validate form
@@ -536,7 +538,7 @@ Use **SheetJS (xlsx)** library:
 **Error handling:**
 - **Empty day (0 visits):** Generate Excel with headers only and show message "Exported empty visit day (0 visits)"
 - **Query timeout/failure:** Show error toast "Failed to export Excel. Please try again."
-- **Large datasets:** Process in batches of 1000 rows if visit count exceeds 500 (unlikely at current scale but future-proof)
+- **Large datasets:** Process in batches of 1000 rows if visit count exceeds 1000 (unlikely at current scale but future-proof)
 
 **Sort order:** Creation time (for now). Future: optimized route order.
 
