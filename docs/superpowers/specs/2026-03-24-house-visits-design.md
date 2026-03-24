@@ -63,11 +63,14 @@ CREATE TABLE visit_days (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   date DATE NOT NULL,
   area TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(date, area)
 );
 ```
 
 **Purpose:** Represents a scheduled visit day in a specific area. Each day gets a dedicated page for managing visits.
+
+**Constraint:** `UNIQUE(date, area)` prevents duplicate visit days for the same date and area, ensuring only one scheduled day per area per date.
 
 #### `products`
 ```sql
@@ -112,13 +115,15 @@ CREATE TABLE visits (
 CREATE TABLE visit_products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   visit_id UUID NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
-  product_id UUID NOT NULL REFERENCES products(id),
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(visit_id, product_id)
 );
 ```
 
 **Purpose:** Many-to-many relationship between visits and products. Each visit can have multiple products, and changing product names in the products table reflects in all historical visits.
+
+**Constraint:** `ON DELETE RESTRICT` on product_id prevents deletion of products that are referenced in any visit, preserving historical data integrity.
 
 ### Indexes
 
@@ -158,6 +163,8 @@ CREATE INDEX idx_visit_products_visit ON visit_products(visit_id);
 ### Session Management
 
 - **Storage:** httpOnly cookies (more secure than localStorage)
+- **Session lifetime:** 7 days of inactivity. Workers must re-login after expiration.
+- **Cookie configuration:** httpOnly, secure (HTTPS only), sameSite=strict, maxAge: 7 days
 - **Middleware:** Next.js middleware checks session before rendering protected routes
 - **Public routes:** Only `/login`
 - **Protected routes:** All others redirect to `/login` if no session
@@ -182,6 +189,7 @@ Optional future enhancement: Admin page to manage users.
 ```
 /app
   layout.tsx                 # Root layout with auth middleware
+  middleware.ts              # Next.js middleware for session validation
   /login
     page.tsx                 # Name selection login page
   /days
@@ -286,6 +294,12 @@ export async function createVisit(data: CreateVisitInput) {
 - **View button:** Navigate to `/days/[id]`
 - **Export button:** Trigger admin password prompt → download Excel
 - **Create New Day button:** Trigger admin password prompt → open modal
+- **Delete Day button** (admin only, optional): Trigger admin password prompt → show warning
+  - If day has 0 visits: Show confirmation "Delete {area} - {date}?"
+  - If day has visits: Show destructive confirmation "Delete {area} - {date}? This will permanently delete {count} visit(s). This cannot be undone."
+  - On confirm → cascade delete day and all visits (enforced by ON DELETE CASCADE)
+
+**Note:** Delete functionality is optional for MVP. Can be added later if needed.
 
 **Create Day Modal:**
 - Date picker (default: tomorrow)
@@ -319,7 +333,16 @@ Columns:
 10. Total (₪ amount)
 11. Actions (Edit, Delete icons)
 
-**Mobile view:** Horizontal scroll for table, or card layout for narrow screens.
+**Mobile view:** Horizontal scroll for table, or card layout for narrow screens (<640px).
+
+**Mobile card layout specification (< 640px):**
+Each visit displayed as a stacked card:
+- **Line 1:** Name (bold, large text)
+- **Line 2:** Address, Floor, Apartment (secondary text)
+- **Line 3:** Products (comma-separated, italic)
+- **Line 4:** Payment method icon + Paid status (✓/✗ with color)
+- **Bottom right:** Total price (₪ amount, bold)
+- **Top right:** Edit/Delete action icons
 
 **Sort order:** Created timestamp ascending (order visits were added). Future: sort by address/route.
 
@@ -366,7 +389,11 @@ Columns:
 **Validation:**
 - All fields required
 - At least one product must be selected
-- Phone format validation (Israeli phone numbers)
+- Phone format validation: Israeli phone numbers
+  - Mobile: 10 digits starting with 05 (e.g., 0501234567, 050-123-4567)
+  - Landline: 7-9 digits with area codes 02/03/04/08/09 (e.g., 02-1234567)
+  - Also accept international format: +972-50-123-4567
+  - Strip dashes/spaces before validation
 
 **Submit flow:**
 1. Validate form
@@ -394,9 +421,10 @@ Columns:
 - Submit → validate uniqueness → insert → refresh table
 
 **Delete Product:**
-- Confirmation: "Delete {product name}? This will not affect past visits."
-- On confirm → delete product record
-- Note: Past visits retain product reference via visit_products table
+- Check if product is used in any visits before allowing deletion
+- If product has associated visits: Show error "Cannot delete '{product name}'. This product is used in {count} visit(s). Products with existing visits cannot be deleted."
+- If product has no visits: Show confirmation "Delete {product name}?" → on confirm, delete product record
+- **Database constraint:** `ON DELETE RESTRICT` on visit_products.product_id ensures referential integrity
 
 ---
 
@@ -412,7 +440,6 @@ total_price = base_price + (extra_gifts * 100)
 ```
 
 **Examples:**
-- 0 products → ₪500
 - 1 product → ₪500
 - 2 products → ₪500
 - 3 products → ₪600
@@ -505,6 +532,11 @@ Use **SheetJS (xlsx)** library:
 3. Create workbook with styled headers
 4. Return file buffer
 5. Client downloads as blob
+
+**Error handling:**
+- **Empty day (0 visits):** Generate Excel with headers only and show message "Exported empty visit day (0 visits)"
+- **Query timeout/failure:** Show error toast "Failed to export Excel. Please try again."
+- **Large datasets:** Process in batches of 1000 rows if visit count exceeds 500 (unlikely at current scale but future-proof)
 
 **Sort order:** Creation time (for now). Future: optimized route order.
 
@@ -641,12 +673,18 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJxxx...
 SUPABASE_SERVICE_ROLE_KEY=eyJxxx...
 
-# Admin password
-ADMIN_PASSWORD=your-secure-password-here
+# Admin password (bcrypt hash)
+# Generate hash: echo -n "your-password" | npx bcrypt-cli
+ADMIN_PASSWORD_HASH=$2b$10$abcdefghijklmnopqrstuv...
 
 # Next.js
 NEXT_PUBLIC_APP_URL=https://your-app.railway.app
 ```
+
+**Important:** `ADMIN_PASSWORD_HASH` should store a bcrypt hash (cost factor 10) of the admin password, not plain text. During setup:
+1. Generate hash using bcrypt CLI: `npx bcrypt-cli "your-secure-password"`
+2. Store hash in environment variable
+3. In `verifyAdmin` server action, use `bcrypt.compare(inputPassword, ADMIN_PASSWORD_HASH)` to verify
 
 ### Deployment Platforms (Free Tier)
 
@@ -699,10 +737,10 @@ NEXT_PUBLIC_APP_URL=https://your-app.railway.app
 
 ### Security Measures
 
-1. **Session cookies:** httpOnly, secure, sameSite=strict
+1. **Session cookies:** httpOnly, secure (HTTPS only), sameSite=strict, 7-day expiration
 2. **Server-side validation:** All mutations validated with Zod schemas
 3. **SQL injection prevention:** Supabase client uses parameterized queries
-4. **Admin password:** Verified server-side, never sent to client
+4. **Admin password:** Bcrypt hashed (cost 10), verified server-side with bcrypt.compare(), never sent to client
 5. **HTTPS:** Enforced by Railway/Render in production
 
 ### Not Implemented (Acceptable for Use Case)
@@ -731,14 +769,15 @@ NEXT_PUBLIC_APP_URL=https://your-app.railway.app
 - [ ] Add visit with all fields saves correctly
 - [ ] Edit visit updates data
 - [ ] Delete visit removes record and products
-- [ ] Total price calculates correctly for 0, 1, 2, 3, 5 products
+- [ ] Total price calculates correctly for 1, 2, 3, 5 products
 - [ ] Products display as comma-separated list
 
 **Products:**
 - [ ] Admin products page requires password
 - [ ] Add product with unique name works
 - [ ] Duplicate product name shows error
-- [ ] Delete product removes from catalog but not from past visits
+- [ ] Delete product with visits shows error and prevents deletion
+- [ ] Delete product without visits works correctly
 
 **Excel Export:**
 - [ ] Export requires admin password
@@ -794,3 +833,15 @@ None remaining—all clarified during brainstorming.
 ## Revision History
 
 - **2026-03-24:** Initial design approved
+- **2026-03-24:** Spec review fixes applied:
+  - Added UNIQUE(date, area) constraint to visit_days table
+  - Added ON DELETE RESTRICT to visit_products.product_id
+  - Removed 0 products example from pricing (at least 1 product required)
+  - Added Israeli phone validation specification
+  - Added session expiration (7 days)
+  - Added middleware.ts to project structure
+  - Updated product deletion to prevent deletion of products with visits
+  - Added Excel export error handling
+  - Changed admin password to bcrypt hash
+  - Added delete day functionality with cascade warning
+  - Added mobile card layout specification
