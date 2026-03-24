@@ -40,7 +40,7 @@ export function LoginForm({ users }: LoginFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md">
       <div className="space-y-2">
         <label className="text-sm font-medium">בחר שם</label>
-        <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+        <Select value={selectedUserId} onValueChange={(value) => setSelectedUserId(value || '')}>
           <SelectTrigger>
             <SelectValue placeholder="בחר עובד" />
           </SelectTrigger>
