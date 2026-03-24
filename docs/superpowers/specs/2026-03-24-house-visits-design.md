@@ -23,7 +23,7 @@ A production-ready web application for managing house visit orders. Workers rece
 - Automatic route optimization
 - Customer portal or self-service booking
 - Payment processing integration
-- Multi-language support
+- Multi-language support (app will be Hebrew-only)
 
 ## Technology Stack
 
@@ -42,6 +42,7 @@ A production-ready web application for managing house visit orders. Workers rece
 - **Shadcn/ui:** Components live in codebase (not node_modules), making them easy to understand and customize
 - **Mobile-first:** Workers primarily use phones in field, admin uses desktop for exports
 - **Free tier:** Small scale (1-5 workers, 20-50 visits/day) fits comfortably in free hosting limits
+- **Hebrew language:** All UI text in Hebrew, right-to-left (RTL) layout support via Tailwind's `dir="rtl"` attribute
 
 ## Database Schema
 
@@ -136,6 +137,33 @@ CREATE INDEX idx_visit_products_visit ON visit_products(visit_id);
 ```
 
 **Rationale:** Optimize common queries (visits for a day, date filtering, product lookups).
+
+## Internationalization (i18n)
+
+### Hebrew Language & RTL Support
+
+**Language:** All UI text will be in Hebrew (עברית).
+
+**RTL Layout:**
+- Set `dir="rtl"` on the HTML root element (`<html dir="rtl">`)
+- Tailwind CSS automatically handles RTL with directional utilities
+- Text alignment: right-aligned by default
+- Layout flow: right-to-left (navigation, forms, tables)
+
+**Implementation approach:**
+- Hardcode all UI strings in Hebrew directly in components (no i18n library needed for single language)
+- Use Tailwind RTL utilities where needed
+- Test on mobile browsers to ensure proper RTL rendering
+
+**Example UI strings (Hebrew):**
+- Login page: "התחברות" (Login), "בחר שם" (Select name)
+- Days page: "ימי ביקור" (Visit days), "יצירת יום חדש" (Create new day)
+- Visit form: "שם" (Name), "טלפון" (Phone), "כתובת" (Address), "קומה" (Floor), "דירה" (Apartment), "קוד בניין" (Building code)
+- Products: "מוצרים" (Products), "מתנה" (Gift)
+- Payment: "אמצעי תשלום" (Payment method), "מזומן" (Cash), "ביט" (Bit), "שולם" (Paid)
+- Actions: "הוסף" (Add), "ערוך" (Edit), "מחק" (Delete), "ייצא לאקסל" (Export to Excel)
+
+**Excel export:** Column headers in Hebrew to match the UI.
 
 ## Authentication & Authorization
 
@@ -569,9 +597,10 @@ Use **SheetJS (xlsx)** library:
 
 ### Styling
 
-- **Tailwind CSS** for utility classes
+- **Tailwind CSS** for utility classes with RTL support
 - **CSS variables** for theme colors (Shadcn default)
 - **Responsive breakpoints:** Mobile (<640px), Tablet (640-1024px), Desktop (>1024px)
+- **RTL layout:** Right-to-left text direction, right-aligned by default
 
 ### Color Scheme
 
@@ -656,13 +685,12 @@ Use **Sonner** (Shadcn's recommended toast library):
 
 ### Other Potential Enhancements
 
-- **Visit notes field:** Free-text notes per visit (e.g., "Leave at door")
+- **Visit notes field:** Free-text notes per visit (e.g., "השאר ליד הדלת" - "Leave at door")
 - **Product quantities:** Track multiple units of same product (e.g., 2x Gift Basket A)
 - **Visit status:** Pending, In Progress, Completed, Cancelled
 - **Photos:** Upload delivery confirmation photos
 - **Customer history:** View past orders for returning customers
 - **Push notifications:** Alert workers when new visits added
-- **Multi-language:** Hebrew interface for Israeli users
 - **Analytics dashboard:** Visits per week, revenue, popular products
 
 ## Deployment
@@ -847,3 +875,13 @@ None remaining—all clarified during brainstorming.
   - Changed admin password to bcrypt hash
   - Added delete day functionality with cascade warning
   - Added mobile card layout specification
+- **2026-03-24:** Minor improvements:
+  - Added bcryptjs to tech stack
+  - Moved middleware.ts to root level
+  - Added phone validation regex pattern
+  - Fixed Excel batch threshold to 1000
+- **2026-03-24:** Added Hebrew language support:
+  - Changed app language to Hebrew (עברית)
+  - Added RTL layout support
+  - Added Hebrew UI strings examples
+  - Excel headers in Hebrew
