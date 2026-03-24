@@ -89,6 +89,11 @@ export async function createVisit(input: CreateVisitInput) {
 }
 
 export async function updateVisit(visitId: string, input: CreateVisitInput) {
+  const session = await getSession()
+  if (!session.user) {
+    throw new Error('Not authenticated')
+  }
+
   const total_price = calculateTotalPrice(input.product_ids.length)
 
   // Update visit
