@@ -1,15 +1,12 @@
-import type { Metadata } from 'next'
-import { Inter, Geist } from 'next/font/google'
-import './globals.css'
-import { cn } from "@/lib/utils";
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: 'YuvalForHome',
-  description: 'Sales tracking application',
+  title: "ניהול ביקורי בית",
+  description: "מערכת לניהול הזמנות ביקורי בית",
 }
 
 export default function RootLayout({
@@ -18,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="he" dir="rtl" className={cn("font-sans", geist.variable)}>
+    <html lang="he" dir="rtl">
       <body className={inter.className}>{children}</body>
     </html>
   )
