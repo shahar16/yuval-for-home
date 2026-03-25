@@ -20,7 +20,7 @@ export function Navbar() {
     }
   }
 
-  if (isLoading || !user) return null
+  if (!user && !isLoading) return null
 
   return (
     <nav className="border-b bg-white">
@@ -38,10 +38,19 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-600">שלום, {user.name}</span>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            התנתק
-          </Button>
+          {isLoading ? (
+            <>
+              <div className="h-4 w-20 bg-gray-200 animate-pulse rounded" />
+              <div className="h-8 w-16 bg-gray-200 animate-pulse rounded" />
+            </>
+          ) : (
+            <>
+              <span className="text-sm text-gray-600">שלום, {user?.name}</span>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                התנתק
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </nav>

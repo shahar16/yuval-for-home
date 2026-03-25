@@ -228,7 +228,9 @@ export function AddEditVisitDialog({
               onValueChange={(value) => setValue('payment_method', value as 'cash' | 'bit', { shouldValidate: true })}
             >
               <SelectTrigger>
-                <SelectValue placeholder="בחר אמצעי תשלום" />
+                <SelectValue placeholder="בחר אמצעי תשלום">
+                  {watch('payment_method') === 'cash' ? 'מזומן' : watch('payment_method') === 'bit' ? 'ביט' : 'בחר אמצעי תשלום'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="cash">מזומן</SelectItem>

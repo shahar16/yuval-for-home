@@ -36,13 +36,17 @@ export function LoginForm({ users }: LoginFormProps) {
     router.push('/days')
   }
 
+  const selectedUser = users.find(u => u.id === selectedUserId)
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md">
       <div className="space-y-2">
         <label className="text-sm font-medium">בחר שם</label>
         <Select value={selectedUserId} onValueChange={(value) => setSelectedUserId(value || '')}>
           <SelectTrigger>
-            <SelectValue placeholder="בחר עובד" />
+            <SelectValue placeholder="בחר עובד">
+              {selectedUser ? selectedUser.name : 'בחר עובד'}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {users.map((user) => (
