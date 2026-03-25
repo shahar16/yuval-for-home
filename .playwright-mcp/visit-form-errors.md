@@ -1,0 +1,90 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e91]:
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - link [ref=e105] [cursor=pointer]:
+            - /url: /days
+            - button [ref=e106]: ← חזרה
+          - heading [level=1] [ref=e107]: חיפה והקריות - 25.03.2026
+        - button [ref=e108] [cursor=pointer]: ייצא לאקסל
+      - generic [ref=e98]:
+        - generic [ref=e99]:
+          - heading [level=2] [ref=e109]: ביקורים
+          - button [ref=e110] [cursor=pointer]: הוסף ביקור
+        - generic [ref=e102]:
+          - paragraph [ref=e103]: אין ביקורים ליום זה
+          - paragraph [ref=e104]: לחץ על "הוסף ביקור" כדי להתחיל
+  - alert [ref=e13]
+  - dialog "הוספת ביקור חדש" [ref=e114]:
+    - heading "הוספת ביקור חדש" [level=2] [ref=e116]
+    - generic [ref=e117]:
+      - generic [ref=e118]:
+        - generic [ref=e119]: שם *
+        - textbox "שם *" [ref=e120]: משה כהן
+        - paragraph [ref=e189]: "Invalid input: expected string, received undefined"
+      - generic [ref=e121]:
+        - generic [ref=e122]: טלפון *
+        - textbox "טלפון *" [ref=e123]: "0501234567"
+        - paragraph [ref=e190]: "Invalid input: expected string, received undefined"
+      - generic [ref=e124]:
+        - generic [ref=e125]: כתובת *
+        - textbox "כתובת *" [ref=e126]: רחוב הרצל 10
+        - paragraph [ref=e191]: "Invalid input: expected string, received undefined"
+      - generic [ref=e127]:
+        - generic [ref=e128]:
+          - generic [ref=e129]: קומה *
+          - textbox "קומה *" [ref=e130]: "3"
+          - paragraph [ref=e192]: "Invalid input: expected string, received undefined"
+        - generic [ref=e131]:
+          - generic [ref=e132]: דירה *
+          - textbox "דירה *" [ref=e133]: "12"
+          - paragraph [ref=e193]: "Invalid input: expected string, received undefined"
+      - generic [ref=e134]:
+        - generic [ref=e135]: קוד בניין *
+        - textbox "קוד בניין *" [ref=e136]: "1234"
+        - paragraph [ref=e194]: "Invalid input: expected string, received undefined"
+      - generic [ref=e137]:
+        - generic [ref=e138]: מוצרים * (3 נבחרו)
+        - generic [ref=e139]:
+          - generic [ref=e140]:
+            - checkbox "בובת מר עגבניה" [ref=e141]
+            - checkbox [ref=e142]
+            - generic [ref=e143] [cursor=pointer]: בובת מר עגבניה
+          - generic [ref=e144]:
+            - checkbox "גיטרה" [checked] [ref=e145]:
+              - img [ref=e178]
+            - checkbox [checked] [ref=e146]
+            - generic [ref=e147] [cursor=pointer]: גיטרה
+          - generic [ref=e148]:
+            - checkbox "טאבלט" [checked] [ref=e149]:
+              - img [ref=e181]
+            - checkbox [checked] [ref=e150]
+            - generic [ref=e151] [cursor=pointer]: טאבלט
+          - generic [ref=e152]:
+            - checkbox "מארז תחפושות יובל המבולבל מידה 4" [ref=e153]
+            - checkbox [ref=e154]
+            - generic [ref=e155] [cursor=pointer]: מארז תחפושות יובל המבולבל מידה 4
+          - generic [ref=e156]:
+            - checkbox "מיקרופון" [checked] [ref=e157]:
+              - img [ref=e184]
+            - checkbox [checked] [ref=e158]
+            - generic [ref=e159] [cursor=pointer]: מיקרופון
+      - generic [ref=e160]:
+        - generic [ref=e161]: אמצעי תשלום *
+        - combobox [ref=e162] [cursor=pointer]:
+          - generic [ref=e163]: cash
+          - img: ▼
+        - textbox [ref=e164]: cash
+      - generic [ref=e165]:
+        - checkbox "שולם" [checked] [ref=e166]:
+          - img [ref=e187]
+        - checkbox [checked] [ref=e167]
+        - generic [ref=e168]: שולם
+      - paragraph [ref=e170]: "סה\"כ: ₪600"
+      - generic [ref=e171]:
+        - button "ביטול" [ref=e172] [cursor=pointer]
+        - button "שמור" [active] [ref=e173] [cursor=pointer]
+    - button "Close" [ref=e174] [cursor=pointer]:
+      - img
+      - generic [ref=e175]: Close

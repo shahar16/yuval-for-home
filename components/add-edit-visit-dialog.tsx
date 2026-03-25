@@ -201,10 +201,10 @@ export function AddEditVisitDialog({
             <Label htmlFor="payment_method">אמצעי תשלום *</Label>
             <Select
               value={watch('payment_method')}
-              onValueChange={(value) => setValue('payment_method', value as 'cash' | 'bit')}
+              onValueChange={(value) => setValue('payment_method', value as 'cash' | 'bit', { shouldValidate: true })}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="בחר אמצעי תשלום" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="cash">מזומן</SelectItem>
@@ -218,7 +218,7 @@ export function AddEditVisitDialog({
             <Checkbox
               id="is_paid"
               checked={watch('is_paid')}
-              onCheckedChange={(checked) => setValue('is_paid', checked as boolean)}
+              onCheckedChange={(checked) => setValue('is_paid', checked as boolean, { shouldValidate: true })}
             />
             <Label htmlFor="is_paid">שולם</Label>
           </div>

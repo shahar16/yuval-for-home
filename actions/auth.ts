@@ -42,14 +42,23 @@ export async function getSession() {
 }
 
 export async function verifyAdminPassword(password: string) {
-  const hash = process.env.ADMIN_PASSWORD_HASH
+  try {
+    const hash = process.env.ADMIN_PASSWORD_HASH
 
-  if (!hash) {
-    throw new Error('Admin password hash not configured')
+    if (!hash) {
+      console.error('ADMIN_PASSWORD_HASH not found in environment')
+      throw new Error('Admin password hash not configured')
+    }
+
+    console.log('Verifying password, hash exists:', !!hash)
+    const isValid = await bcrypt.compare(password, hash)
+    console.log('Password verification result:', isValid)
+
+    return { success: isValid }
+  } catch (error) {
+    console.error('Error in verifyAdminPassword:', error)
+    throw error
   }
-
-  const isValid = await bcrypt.compare(password, hash)
-  return { success: isValid }
 }
 
 export async function getUsers() {
