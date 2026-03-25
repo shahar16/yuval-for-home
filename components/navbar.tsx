@@ -7,15 +7,20 @@ import { Button } from './ui/button'
 import Link from 'next/link'
 
 export function Navbar() {
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
   const router = useRouter()
 
   const handleLogout = async () => {
-    await logout()
-    router.push('/login')
+    try {
+      await logout()
+      router.push('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+      alert('שגיאה בהתנתקות')
+    }
   }
 
-  if (!user) return null
+  if (isLoading || !user) return null
 
   return (
     <nav className="border-b bg-white">
