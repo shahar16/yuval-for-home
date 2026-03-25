@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Product, VisitWithProducts } from '@/lib/types'
@@ -58,7 +58,7 @@ export function AddEditVisitDialog({
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
 
   const {
-    register,
+    control,
     handleSubmit,
     formState: { errors },
     reset,
@@ -142,39 +142,63 @@ export function AddEditVisitDialog({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">שם *</Label>
-            <Input id="name" {...register('name')} />
+            <Controller
+              name="name"
+              control={control}
+              render={({ field }) => <Input id="name" {...field} />}
+            />
             {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="phone">טלפון *</Label>
-            <Input id="phone" {...register('phone')} />
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => <Input id="phone" {...field} />}
+            />
             {errors.phone && <p className="text-sm text-red-600">{errors.phone.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="address">כתובת *</Label>
-            <Input id="address" {...register('address')} />
+            <Controller
+              name="address"
+              control={control}
+              render={({ field }) => <Input id="address" {...field} />}
+            />
             {errors.address && <p className="text-sm text-red-600">{errors.address.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="floor">קומה *</Label>
-              <Input id="floor" {...register('floor')} />
+              <Controller
+                name="floor"
+                control={control}
+                render={({ field }) => <Input id="floor" {...field} />}
+              />
               {errors.floor && <p className="text-sm text-red-600">{errors.floor.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="apartment">דירה *</Label>
-              <Input id="apartment" {...register('apartment')} />
+              <Controller
+                name="apartment"
+                control={control}
+                render={({ field }) => <Input id="apartment" {...field} />}
+              />
               {errors.apartment && <p className="text-sm text-red-600">{errors.apartment.message}</p>}
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="building_code">קוד בניין *</Label>
-            <Input id="building_code" {...register('building_code')} />
+            <Controller
+              name="building_code"
+              control={control}
+              render={({ field }) => <Input id="building_code" {...field} />}
+            />
             {errors.building_code && <p className="text-sm text-red-600">{errors.building_code.message}</p>}
           </div>
 
