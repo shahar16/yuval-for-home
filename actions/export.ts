@@ -4,6 +4,12 @@ import { supabase } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
 import { getDay } from './days'
 
+interface VisitProductQuery {
+  products: {
+    name: string
+  } | null
+}
+
 export async function exportVisitsToExcel(visitDayId: string) {
   // Get day info
   const day = await getDay(visitDayId)
@@ -30,8 +36,9 @@ export async function exportVisitsToExcel(visitDayId: string) {
 
   // Map to Excel rows
   const rows = visits.map((visit, index) => {
-    const products = visit.visit_products
-      .map((vp: any) => vp.products.name)
+    const products = (visit.visit_products as VisitProductQuery[])
+      .map((vp) => vp.products?.name)
+      .filter(Boolean)
       .join(', ')
 
     return {
