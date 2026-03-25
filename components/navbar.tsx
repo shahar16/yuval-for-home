@@ -25,10 +25,10 @@ export function Navbar() {
             <h1 className="text-xl font-bold">ניהול ביקורי בית</h1>
           </Link>
           <Link href="/days">
-            <Button variant="ghost" size="sm">ימי ביקור</Button>
+            <Button variant="ghost" size="sm">ימים</Button>
           </Link>
           <Link href="/admin/products">
-            <Button variant="ghost" size="sm">ניהול מוצרים</Button>
+            <Button variant="ghost" size="sm">מוצרים</Button>
           </Link>
         </div>
 
