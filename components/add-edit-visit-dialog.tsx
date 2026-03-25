@@ -257,7 +257,7 @@ export function AddEditVisitDialog({
 
           <div className="space-y-2">
             <Label>מוצרים * (סה"כ {totalProducts} מוצרים)</Label>
-            <div className="border rounded-md p-4 space-y-3 max-h-60 overflow-y-auto">
+            <div className={`border rounded-md p-4 space-y-3 max-h-60 overflow-y-auto ${totalProducts === 0 && errors.product_quantities ? 'border-red-500' : ''}`}>
               {products.map((product) => (
                 <div key={product.id} className="flex items-center gap-3">
                   <Label htmlFor={`product-${product.id}`} className="flex-1">
@@ -294,6 +294,9 @@ export function AddEditVisitDialog({
               ))}
             </div>
             {errors.product_quantities && <p className="text-sm text-red-600">{errors.product_quantities.message}</p>}
+            {totalProducts === 0 && !errors.product_quantities && (
+              <p className="text-sm text-gray-500">יש לבחור לפחות מוצר אחד</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -344,7 +347,7 @@ export function AddEditVisitDialog({
             >
               ביטול
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || totalProducts === 0}>
               {isLoading ? 'שומר...' : 'שמור'}
             </Button>
           </div>
