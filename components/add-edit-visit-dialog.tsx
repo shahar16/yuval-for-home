@@ -140,8 +140,17 @@ export function AddEditVisitDialog({
     setIsLoading(true)
 
     try {
+      // Filter out products with 0 quantity
+      const filteredQuantities: Record<string, number> = {}
+      Object.entries(data.product_quantities).forEach(([id, qty]) => {
+        if (qty > 0) {
+          filteredQuantities[id] = qty
+        }
+      })
+
       const input: CreateVisitInput = {
         ...data,
+        product_quantities: filteredQuantities,
         visit_day_id: visitDayId,
       }
 
