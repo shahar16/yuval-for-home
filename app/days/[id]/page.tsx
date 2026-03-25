@@ -3,6 +3,7 @@ import { getDay } from '@/actions/days'
 import { getVisits } from '@/actions/visits'
 import { getProducts } from '@/actions/products'
 import { VisitsTable } from '@/components/visits-table'
+import { ExportButton } from '@/components/export-button'
 import { formatDate } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -26,7 +27,7 @@ export default async function DayPage({ params }: { params: { id: string } }) {
               {day.area} - {formatDate(day.date)}
             </h1>
           </div>
-          <Button variant="outline">ייצא לאקסל</Button>
+          <ExportButton visitDayId={params.id} />
         </div>
 
         <VisitsTable
