@@ -10,12 +10,13 @@ export interface CreateVisitInput {
   name: string
   phone: string
   address: string
-  floor: string
-  apartment: string
-  building_code: string
+  private_house: boolean
+  floor?: string
+  apartment?: string
+  building_code?: string
   payment_method: 'cash' | 'bit'
   is_paid: boolean
-  product_ids: string[]
+  product_quantities: Record<string, number> // { product_id: quantity }
 }
 
 export async function getVisits(visitDayId: string) {
@@ -32,10 +33,10 @@ export async function getVisits(visitDayId: string) {
     visits.map(async (visit) => {
       const { data: visitProducts } = await supabase
         .from('visit_products')
-        .select('product_id, products(id, name)')
+        .select('product_id, quantity, products(id, name)')
         .eq('visit_id', visit.id)
 
-      const products = visitProducts?.map(vp => vp.products) || []
+      const products = visitProducts?.map(vp => ({ ...vp.products, quantity: vp.quantity })) || []
       return { ...visit, products }
     })
   )
@@ -49,7 +50,8 @@ export async function createVisit(input: CreateVisitInput) {
     throw new Error('Not authenticated')
   }
 
-  const total_price = calculateTotalPrice(input.product_ids.length)
+  const totalProducts = Object.values(input.product_quantities).reduce((sum, qty) => sum + qty, 0)
+  const total_price = calculateTotalPrice(totalProducts)
 
   // Insert visit
   const { data: visit, error: visitError } = await supabase
@@ -59,9 +61,10 @@ export async function createVisit(input: CreateVisitInput) {
       name: input.name,
       phone: input.phone,
       address: input.address,
-      floor: input.floor,
-      apartment: input.apartment,
-      building_code: input.building_code,
+      private_house: input.private_house,
+      floor: input.floor || null,
+      apartment: input.apartment || null,
+      building_code: input.building_code || null,
       payment_method: input.payment_method,
       is_paid: input.is_paid,
       total_price,
@@ -72,10 +75,11 @@ export async function createVisit(input: CreateVisitInput) {
 
   if (visitError) throw visitError
 
-  // Insert visit products
-  const visitProducts = input.product_ids.map(product_id => ({
+  // Insert visit products with quantities
+  const visitProducts = Object.entries(input.product_quantities).map(([product_id, quantity]) => ({
     visit_id: visit.id,
     product_id,
+    quantity,
   }))
 
   const { error: productsError } = await supabase
@@ -94,7 +98,8 @@ export async function updateVisit(visitId: string, input: CreateVisitInput) {
     throw new Error('Not authenticated')
   }
 
-  const total_price = calculateTotalPrice(input.product_ids.length)
+  const totalProducts = Object.values(input.product_quantities).reduce((sum, qty) => sum + qty, 0)
+  const total_price = calculateTotalPrice(totalProducts)
 
   // Update visit
   const { error: visitError } = await supabase
@@ -103,9 +108,10 @@ export async function updateVisit(visitId: string, input: CreateVisitInput) {
       name: input.name,
       phone: input.phone,
       address: input.address,
-      floor: input.floor,
-      apartment: input.apartment,
-      building_code: input.building_code,
+      private_house: input.private_house,
+      floor: input.floor || null,
+      apartment: input.apartment || null,
+      building_code: input.building_code || null,
       payment_method: input.payment_method,
       is_paid: input.is_paid,
       total_price,
@@ -120,10 +126,11 @@ export async function updateVisit(visitId: string, input: CreateVisitInput) {
     .delete()
     .eq('visit_id', visitId)
 
-  // Insert new products
-  const visitProducts = input.product_ids.map(product_id => ({
+  // Insert new products with quantities
+  const visitProducts = Object.entries(input.product_quantities).map(([product_id, quantity]) => ({
     visit_id: visitId,
     product_id,
+    quantity,
   }))
 
   const { error: productsError } = await supabase

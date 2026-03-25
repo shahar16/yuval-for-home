@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { exportVisitsToExcel } from '@/actions/export'
-import { AdminPasswordPrompt } from './admin-password-prompt'
 import { Button } from './ui/button'
 
 interface ExportButtonProps {
@@ -10,7 +9,6 @@ interface ExportButtonProps {
 }
 
 export function ExportButton({ visitDayId }: ExportButtonProps) {
-  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
 
   const handleExport = async () => {
@@ -40,22 +38,12 @@ export function ExportButton({ visitDayId }: ExportButtonProps) {
   }
 
   return (
-    <>
-      <Button
-        variant="outline"
-        onClick={() => setShowPasswordPrompt(true)}
-        disabled={isExporting}
-      >
-        {isExporting ? 'מייצא...' : 'ייצא לאקסל'}
-      </Button>
-
-      <AdminPasswordPrompt
-        open={showPasswordPrompt}
-        onOpenChange={setShowPasswordPrompt}
-        onSuccess={handleExport}
-        title="ייצוא לאקסל"
-        description="נדרשת סיסמת מנהל לייצוא נתונים"
-      />
-    </>
+    <Button
+      variant="outline"
+      onClick={handleExport}
+      disabled={isExporting}
+    >
+      {isExporting ? 'מייצא...' : 'ייצא לאקסל'}
+    </Button>
   )
 }

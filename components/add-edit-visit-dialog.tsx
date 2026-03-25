@@ -29,12 +29,28 @@ const visitSchema = z.object({
   name: z.string().min(1, 'שדה חובה'),
   phone: z.string().refine(validateIsraeliPhone, 'מספר טלפון לא תקין'),
   address: z.string().min(1, 'שדה חובה'),
-  floor: z.string().min(1, 'שדה חובה'),
-  apartment: z.string().min(1, 'שדה חובה'),
-  building_code: z.string().min(1, 'שדה חובה'),
+  private_house: z.boolean(),
+  floor: z.string().optional(),
+  apartment: z.string().optional(),
+  building_code: z.string().optional(),
   payment_method: z.enum(['cash', 'bit']),
   is_paid: z.boolean(),
-  product_ids: z.array(z.string()).min(1, 'יש לבחור לפחות מוצר אחד'),
+  product_quantities: z.record(z.number().min(0)),
+}).refine((data) => {
+  // If not a private house, floor and apartment are required
+  if (!data.private_house) {
+    return data.floor && data.floor.length > 0 && data.apartment && data.apartment.length > 0
+  }
+  return true
+}, {
+  message: 'קומה ודירה חובה עבור בניין',
+  path: ['floor'],
+}).refine((data) => {
+  // At least one product with quantity > 0
+  return Object.values(data.product_quantities).some(qty => qty > 0)
+}, {
+  message: 'יש לבחור לפחות מוצר אחד',
+  path: ['product_quantities'],
 })
 
 type VisitFormData = z.infer<typeof visitSchema>
@@ -55,7 +71,7 @@ export function AddEditVisitDialog({
   visit,
 }: AddEditVisitDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+  const [productQuantities, setProductQuantities] = useState<Record<string, number>>({})
 
   const {
     control,
@@ -70,42 +86,55 @@ export function AddEditVisitDialog({
       name: '',
       phone: '',
       address: '',
+      private_house: false,
       floor: '',
       apartment: '',
       building_code: '',
       payment_method: 'cash',
       is_paid: false,
-      product_ids: [],
+      product_quantities: {},
     },
   })
 
   useEffect(() => {
     if (visit) {
+      const quantities: Record<string, number> = {}
+      visit.products.forEach(p => {
+        quantities[p.id] = p.quantity
+      })
+
       reset({
         name: visit.name,
         phone: visit.phone,
         address: visit.address,
-        floor: visit.floor,
-        apartment: visit.apartment,
-        building_code: visit.building_code,
+        private_house: visit.private_house,
+        floor: visit.floor || '',
+        apartment: visit.apartment || '',
+        building_code: visit.building_code || '',
         payment_method: visit.payment_method,
         is_paid: visit.is_paid,
-        product_ids: visit.products.map(p => p.id),
+        product_quantities: quantities,
       })
-      setSelectedProducts(visit.products.map(p => p.id))
+      setProductQuantities(quantities)
+    } else {
+      // Initialize all products with 0 quantity
+      const initialQuantities: Record<string, number> = {}
+      products.forEach(p => {
+        initialQuantities[p.id] = 0
+      })
+      setProductQuantities(initialQuantities)
+      setValue('product_quantities', initialQuantities)
     }
-  }, [visit, reset])
+  }, [visit, products, reset, setValue])
 
-  const toggleProduct = (productId: string) => {
-    const newSelected = selectedProducts.includes(productId)
-      ? selectedProducts.filter(id => id !== productId)
-      : [...selectedProducts, productId]
-
-    setSelectedProducts(newSelected)
-    setValue('product_ids', newSelected, { shouldValidate: true })
+  const updateQuantity = (productId: string, quantity: number) => {
+    const newQuantities = { ...productQuantities, [productId]: Math.max(0, quantity) }
+    setProductQuantities(newQuantities)
+    setValue('product_quantities', newQuantities, { shouldValidate: true })
   }
 
-  const totalPrice = calculateTotalPrice(selectedProducts.length)
+  const totalProducts = Object.values(productQuantities).reduce((sum, qty) => sum + qty, 0)
+  const totalPrice = calculateTotalPrice(totalProducts)
 
   const onSubmit = async (data: VisitFormData) => {
     setIsLoading(true)
@@ -124,7 +153,11 @@ export function AddEditVisitDialog({
 
       onOpenChange(false)
       reset()
-      setSelectedProducts([])
+      const initialQuantities: Record<string, number> = {}
+      products.forEach(p => {
+        initialQuantities[p.id] = 0
+      })
+      setProductQuantities(initialQuantities)
     } catch (error: any) {
       alert(error.message || 'שגיאה בשמירת ביקור')
     } finally {
@@ -170,30 +203,41 @@ export function AddEditVisitDialog({
             {errors.address && <p className="text-sm text-red-600">{errors.address.message}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="floor">קומה *</Label>
-              <Controller
-                name="floor"
-                control={control}
-                render={({ field }) => <Input id="floor" {...field} />}
-              />
-              {errors.floor && <p className="text-sm text-red-600">{errors.floor.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="apartment">דירה *</Label>
-              <Controller
-                name="apartment"
-                control={control}
-                render={({ field }) => <Input id="apartment" {...field} />}
-              />
-              {errors.apartment && <p className="text-sm text-red-600">{errors.apartment.message}</p>}
-            </div>
+          <div className="flex items-center space-x-2 space-x-reverse">
+            <Checkbox
+              id="private_house"
+              checked={watch('private_house')}
+              onCheckedChange={(checked) => setValue('private_house', checked as boolean, { shouldValidate: true })}
+            />
+            <Label htmlFor="private_house">בית פרטי</Label>
           </div>
 
+          {!watch('private_house') && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="floor">קומה *</Label>
+                <Controller
+                  name="floor"
+                  control={control}
+                  render={({ field }) => <Input id="floor" {...field} />}
+                />
+                {errors.floor && <p className="text-sm text-red-600">{errors.floor.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="apartment">דירה *</Label>
+                <Controller
+                  name="apartment"
+                  control={control}
+                  render={({ field }) => <Input id="apartment" {...field} />}
+                />
+                {errors.apartment && <p className="text-sm text-red-600">{errors.apartment.message}</p>}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label htmlFor="building_code">קוד בניין *</Label>
+            <Label htmlFor="building_code">קוד בניין</Label>
             <Controller
               name="building_code"
               control={control}
@@ -203,22 +247,44 @@ export function AddEditVisitDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>מוצרים * ({selectedProducts.length} נבחרו)</Label>
-            <div className="border rounded-md p-4 space-y-2 max-h-40 overflow-y-auto">
+            <Label>מוצרים * (סה"כ {totalProducts} מוצרים)</Label>
+            <div className="border rounded-md p-4 space-y-3 max-h-60 overflow-y-auto">
               {products.map((product) => (
-                <div key={product.id} className="flex items-center space-x-2 space-x-reverse">
-                  <Checkbox
-                    id={`product-${product.id}`}
-                    checked={selectedProducts.includes(product.id)}
-                    onCheckedChange={() => toggleProduct(product.id)}
-                  />
-                  <Label htmlFor={`product-${product.id}`} className="cursor-pointer">
+                <div key={product.id} className="flex items-center gap-3">
+                  <Label htmlFor={`product-${product.id}`} className="flex-1">
                     {product.name}
                   </Label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateQuantity(product.id, (productQuantities[product.id] || 0) - 1)}
+                      disabled={!productQuantities[product.id] || productQuantities[product.id] === 0}
+                    >
+                      -
+                    </Button>
+                    <Input
+                      id={`product-${product.id}`}
+                      type="number"
+                      min="0"
+                      value={productQuantities[product.id] || 0}
+                      onChange={(e) => updateQuantity(product.id, parseInt(e.target.value) || 0)}
+                      className="w-16 text-center"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => updateQuantity(product.id, (productQuantities[product.id] || 0) + 1)}
+                    >
+                      +
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
-            {errors.product_ids && <p className="text-sm text-red-600">{errors.product_ids.message}</p>}
+            {errors.product_quantities && <p className="text-sm text-red-600">{errors.product_quantities.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -260,7 +326,11 @@ export function AddEditVisitDialog({
               onClick={() => {
                 onOpenChange(false)
                 reset()
-                setSelectedProducts([])
+                const initialQuantities: Record<string, number> = {}
+                products.forEach(p => {
+                  initialQuantities[p.id] = 0
+                })
+                setProductQuantities(initialQuantities)
               }}
             >
               ביטול

@@ -65,9 +65,6 @@ export function VisitsTable({ visits, products, visitDayId }: VisitsTableProps) 
                   <TableHead>שם</TableHead>
                   <TableHead>טלפון</TableHead>
                   <TableHead>כתובת</TableHead>
-                  <TableHead>קומה</TableHead>
-                  <TableHead>דירה</TableHead>
-                  <TableHead>קוד</TableHead>
                   <TableHead>מוצרים</TableHead>
                   <TableHead>תשלום</TableHead>
                   <TableHead>שולם</TableHead>
@@ -80,11 +77,13 @@ export function VisitsTable({ visits, products, visitDayId }: VisitsTableProps) 
                   <TableRow key={visit.id}>
                     <TableCell>{visit.name}</TableCell>
                     <TableCell>{visit.phone}</TableCell>
-                    <TableCell>{visit.address}</TableCell>
-                    <TableCell>{visit.floor}</TableCell>
-                    <TableCell>{visit.apartment}</TableCell>
-                    <TableCell>{visit.building_code}</TableCell>
-                    <TableCell>{visit.products.map(p => p.name).join(', ')}</TableCell>
+                    <TableCell>
+                      {visit.private_house
+                        ? `${visit.address} (בית פרטי)`
+                        : `${visit.address}, קומה ${visit.floor}, דירה ${visit.apartment}`}
+                      {visit.building_code && ` | קוד: ${visit.building_code}`}
+                    </TableCell>
+                    <TableCell>{visit.products.map(p => `${p.name} (${p.quantity})`).join(', ')}</TableCell>
                     <TableCell>{visit.payment_method === 'cash' ? 'מזומן' : 'ביט'}</TableCell>
                     <TableCell>
                       <span className={visit.is_paid ? 'text-green-600' : 'text-red-600'}>

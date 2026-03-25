@@ -23,9 +23,10 @@ export interface Visit {
   name: string
   phone: string
   address: string
-  floor: string
-  apartment: string
-  building_code: string
+  private_house: boolean
+  floor: string | null
+  apartment: string | null
+  building_code: string | null
   payment_method: 'cash' | 'bit'
   is_paid: boolean
   total_price: number
@@ -37,11 +38,12 @@ export interface VisitProduct {
   id: string
   visit_id: string
   product_id: string
+  quantity: number
   created_at: string
 }
 
 export interface VisitWithProducts extends Visit {
-  products: Product[]
+  products: (Product & { quantity: number })[]
 }
 
 export interface VisitDayWithCount extends VisitDay {

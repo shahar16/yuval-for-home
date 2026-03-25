@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx'
 import { getDay } from './days'
 
 interface VisitProductQuery {
+  quantity: number
   products: {
     name: string
   } | null
@@ -20,6 +21,7 @@ export async function exportVisitsToExcel(visitDayId: string) {
     .select(`
       *,
       visit_products (
+        quantity,
         products (
           name
         )
@@ -37,7 +39,7 @@ export async function exportVisitsToExcel(visitDayId: string) {
   // Map to Excel rows
   const rows = visits.map((visit, index) => {
     const products = (visit.visit_products as VisitProductQuery[])
-      .map((vp) => vp.products?.name)
+      .map((vp) => vp.products?.name ? `${vp.products.name} (${vp.quantity})` : null)
       .filter(Boolean)
       .join(', ')
 
@@ -45,10 +47,10 @@ export async function exportVisitsToExcel(visitDayId: string) {
       'מספר': index + 1,
       'שם': visit.name,
       'טלפון': visit.phone,
-      'כתובת': visit.address,
-      'קומה': visit.floor,
-      'דירה': visit.apartment,
-      'קוד': visit.building_code,
+      'כתובת': visit.private_house
+        ? `${visit.address} (בית פרטי)`
+        : `${visit.address}, קומה ${visit.floor}, דירה ${visit.apartment}`,
+      'קוד': visit.building_code || '',
       'מוצרים': products,
       'תשלום': visit.payment_method === 'cash' ? 'מזומן' : 'ביט',
       'שולם': visit.is_paid ? 'כן' : 'לא',
@@ -66,11 +68,9 @@ export async function exportVisitsToExcel(visitDayId: string) {
     { wch: 6 },  // מספר
     { wch: 15 }, // שם
     { wch: 12 }, // טלפון
-    { wch: 25 }, // כתובת
-    { wch: 6 },  // קומה
-    { wch: 6 },  // דירה
+    { wch: 35 }, // כתובת
     { wch: 10 }, // קוד
-    { wch: 30 }, // מוצרים
+    { wch: 35 }, // מוצרים
     { wch: 8 },  // תשלום
     { wch: 6 },  // שולם
     { wch: 10 }, // סה"כ

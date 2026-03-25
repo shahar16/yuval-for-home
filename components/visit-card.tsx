@@ -27,11 +27,14 @@ export function VisitCard({ visit, onEdit, onDelete }: VisitCardProps) {
       </div>
 
       <p className="text-sm text-gray-600">
-        {visit.address}, קומה {visit.floor}, דירה {visit.apartment}
+        {visit.private_house
+          ? `${visit.address} (בית פרטי)`
+          : `${visit.address}, קומה ${visit.floor}, דירה ${visit.apartment}`}
+        {visit.building_code && ` | קוד: ${visit.building_code}`}
       </p>
 
       <p className="text-sm italic text-gray-500">
-        {visit.products.map(p => p.name).join(', ')}
+        {visit.products.map(p => `${p.name} (${p.quantity})`).join(', ')}
       </p>
 
       <div className="flex justify-between items-center pt-2">

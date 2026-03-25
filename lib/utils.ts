@@ -6,9 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function calculateTotalPrice(productCount: number): number {
-  const basePrice = 500
-  const extraGifts = Math.max(0, productCount - 2)
-  return basePrice + (extraGifts * 100)
+  const basePrice = 500 // Visit + 1 product
+  const extraProducts = Math.max(0, productCount - 1)
+  return basePrice + (extraProducts * 100)
 }
 
 export function formatPrice(price: number): string {

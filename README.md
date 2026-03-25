@@ -1,350 +1,299 @@
-# ניהול ביקורי בית
+# Home Visit Management
 
 [![Tests](https://img.shields.io/badge/tests-passing-brightgreen)](./docs/E2E_TEST_RESULTS.md)
 [![Bugs Fixed](https://img.shields.io/badge/bugs%20fixed-7%2F7-brightgreen)](./docs/ALL_BUGS_FIXED.md)
 [![Production Ready](https://img.shields.io/badge/status-production%20ready-brightgreen)](#)
 
-מערכת לניהול הזמנות ביקורי בית עם ממשק עברי ותמיכה ב-RTL.
+A system for managing home visit orders with Hebrew interface and RTL support.
 
-## תכונות
+## Features
 
-- **אימות משתמשים פשוט** - בחירת שם ממשתמשים קיימים
-- **ניהול ימי ביקור** - יצירת ימי ביקור לפי תאריכים ואזורים
-- **ניהול ביקורים** - הוספה, עריכה ומחיקה של ביקורים
-- **חישוב מחיר אוטומטי** - מחיר בסיס ₪500, כל מוצר נוסף מעבר ל-2 עולה ₪100
-- **ניהול מוצרים** - הוספה ומחיקה של מוצרים (מוגן בסיסמת מנהל)
-- **ייצוא לאקסל** - ייצוא רשימת ביקורים עם כותרות בעברית (מוגן בסיסמת מנהל)
-- **ממשק מותאם למובייל** - תצוגת כרטיסים במובייל, טבלה בדסקטופ
-- **תמיכה מלאה ב-RTL** - ממשק בעברית מימין לשמאל
+- **Simple User Authentication** - Select name from existing users
+- **Visit Day Management** - Create visit days by date and region
+- **Visit Management** - Add, edit, and delete visits
+- **Automatic Price Calculation** - Base price ₪500 (includes visit + 1 product), each additional product ₪100
+- **Product Management** - Add and delete products
+- **Export to Excel** - Export visit list with Hebrew headers
+- **Mobile-Responsive Interface** - Card view on mobile, table on desktop
+- **Full RTL Support** - Hebrew interface right-to-left
+- **Private House Support** - Optional floor/apartment fields for private houses
+- **Product Quantities** - Add multiple quantities of the same product type
 
-## טכנולוגיות
+## Technologies
 
-- **Next.js 14** - App Router עם Server Components
-- **TypeScript** - טיפוסים סטטיים
+- **Next.js 14** - App Router with Server Components
+- **TypeScript** - Static typing
 - **Supabase** - PostgreSQL database
-- **Shadcn/ui** - קומפוננטות UI מעוצבות
-- **Tailwind CSS** - עיצוב עם תמיכה ב-RTL
-- **React Hook Form + Zod** - טפסים עם ולידציה
-- **SheetJS (xlsx)** - ייצוא לאקסל
-- **bcryptjs** - הצפנת סיסמאות
-- **Vitest** - בדיקות יחידה
+- **Shadcn/ui** - Styled UI components
+- **Tailwind CSS** - Styling with RTL support
+- **React Hook Form + Zod** - Forms with validation
+- **SheetJS (xlsx)** - Excel export
+- **Vitest** - Unit tests
 
-## מבנה הפרויקט
+## Project Structure
 
 ```
 ├── app/                    # Next.js App Router
-│   ├── login/             # עמוד התחברות
-│   ├── days/              # רשימת ימי ביקור
-│   │   └── [id]/         # פירוט יום ביקור
+│   ├── login/             # Login page
+│   ├── days/              # Visit days list
+│   │   └── [id]/         # Visit day details
 │   └── admin/
-│       └── products/     # ניהול מוצרים (מוגן)
-├── components/            # קומפוננטות React
+│       └── products/     # Product management
+├── components/            # React components
 ├── actions/              # Server Actions
-├── lib/                  # פונקציות עזר וטיפוסים
-├── supabase/             # מייגרציות DB
-└── tests/               # בדיקות יחידה
+├── lib/                  # Helper functions and types
+├── supabase/             # DB migrations
+└── tests/               # Unit tests
 ```
 
-## התקנה מהירה
+## Quick Setup
 
-### דרישות מקדימות
+### Prerequisites
 
-- Node.js 18 ומעלה
-- חשבון Supabase (חינמי)
+- Node.js 18 or higher
+- Supabase account (free)
 
-### שלבים
+### Steps
 
-1. **התקן תלויות:**
+1. **Install dependencies:**
 ```bash
 npm install
 ```
 
-2. **הגדר Supabase:**
-   - צור פרויקט חדש ב-[Supabase](https://supabase.com)
-   - בדף הפרויקט, עבור ל-SQL Editor
-   - הרץ את הסקריפט מ-`supabase/migrations/001_initial_schema.sql`
+2. **Set up Supabase:**
+   - Create a new project on [Supabase](https://supabase.com)
+   - In the project page, go to SQL Editor
+   - Run the scripts from `supabase/migrations/` in order (001, 002, 003, 004)
 
-3. **הגדר משתני סביבה:**
+3. **Configure environment variables:**
 
-צור קובץ `.env.local`:
+Create a `.env.local` file:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-ADMIN_PASSWORD_HASH=your-bcrypt-hash
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-4. **צור hash לסיסמת מנהל:**
-
-```bash
-node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10, (err, hash) => console.log(hash));"
-```
-
-העתק את ה-hash ל-`ADMIN_PASSWORD_HASH` ב-`.env.local`.
-
-⚠️ **חשוב**: אם ה-hash מכיל תו `$`, הוסף escape characters (`\$`) - ראה פרק "בדיקות" למטה.
-
-5. **הרץ שרת פיתוח:**
+4. **Run development server:**
 
 ```bash
 npm run dev
 ```
 
-גלוש ל-http://localhost:3000
+Browse to http://localhost:3000
 
-## משתני סביבה
+## Environment Variables
 
-| משתנה | תיאור | דוגמה |
-|------|-------|-------|
-| `NEXT_PUBLIC_SUPABASE_URL` | כתובת Supabase | `https://xxx.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | מפתח ציבורי | `eyJhbG...` |
-| `SUPABASE_SERVICE_ROLE_KEY` | מפתח שרת (סודי) | `eyJhbG...` |
-| `ADMIN_PASSWORD_HASH` | סיסמת מנהל מוצפנת (bcrypt) | `$2b$10$...` |
-| `NEXT_PUBLIC_APP_URL` | כתובת האפליקציה | `http://localhost:3000` |
+| Variable | Description | Example |
+|---------|-------------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase URL | `https://xxx.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public key | `eyJhbG...` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server key (secret) | `eyJhbG...` |
+| `NEXT_PUBLIC_APP_URL` | Application URL | `http://localhost:3000` |
 
-**⚠️ חשוב:** אל תשתף את `SUPABASE_SERVICE_ROLE_KEY` ו-`ADMIN_PASSWORD_HASH` באף מקום!
+**⚠️ Important:** Never share `SUPABASE_SERVICE_ROLE_KEY`!
 
-## שימוש
+## Usage
 
-### התחברות
-1. בחר שם משתמש מהרשימה
-2. לחץ "התחבר"
+### Login
+1. Select a username from the list
+2. Click "Login"
 
-### ניהול ימי ביקור
-1. בעמוד הראשי, לחץ "יום חדש"
-2. הזן סיסמת מנהל
-3. הזן תאריך ואזור
-4. לחץ על יום כדי לצפות בביקורים
+### Managing Visit Days
+1. On the home page, click "New Day"
+2. Enter date and region
+3. Click on a day to view visits
 
-### הוספת ביקור
-1. בתוך יום ביקור, לחץ "הוסף ביקור"
-2. מלא את כל השדות:
-   - שם
-   - טלפון (תקין לפי סטנדרט ישראלי)
-   - כתובת, קומה, דירה
-   - קוד בניין
-   - בחר מוצרים (לפחות אחד)
-   - בחר אמצעי תשלום (מזומן/ביט)
-   - סמן אם שולם
-3. המחיר מחושב אוטומטית
+### Adding a Visit
+1. Inside a visit day, click "Add Visit"
+2. Fill in all fields:
+   - Name
+   - Phone (valid Israeli format)
+   - Address
+   - Check "Private House" if applicable (floor and apartment become optional)
+   - Floor, Apartment (required for buildings)
+   - Building Code (optional)
+   - Select products with quantities
+   - Choose payment method (Cash/Bit)
+   - Mark if paid
+3. Price is calculated automatically
 
-**חישוב מחיר:**
-- 1-2 מוצרים: ₪500
-- 3 מוצרים: ₪600
-- 4 מוצרים: ₪700
-- וכן הלאה... (₪100 לכל מוצר נוסף)
+**Price Calculation:**
+- Base (visit + 1 product): ₪500
+- 2 products: ₪600
+- 3 products: ₪700
+- And so on... (₪100 for each additional product)
 
-### ניהול מוצרים
-1. נווט ל-"מוצרים" בתפריט
-2. הזן סיסמת מנהל
-3. הוסף מוצרים חדשים או מחק קיימים
-4. **שים לב:** לא ניתן למחוק מוצר המשויך לביקורים קיימים
+### Product Management
+1. Navigate to "Products" in the menu
+2. Add new products or delete existing ones
+3. **Note:** Cannot delete products associated with existing visits
 
-### ייצוא לאקסל
-1. בתוך יום ביקור, לחץ "ייצא לאקסל"
-2. הזן סיסמת מנהל
-3. הקובץ יורד אוטומטית עם כל הפרטים
+### Export to Excel
+1. Inside a visit day, click "Export to Excel"
+2. The file downloads automatically with all details
 
-## בדיקות
+## Tests
 
-### ✅ סטטוס בדיקות
+### ✅ Test Status
 
-**תאריך אחרון**: 2026-03-25
-**שיטת בדיקה**: Playwright E2E Automation
-**תוצאה**: ✅ **כל הבדיקות עברו בהצלחה**
+**Last Updated**: 2026-03-25
+**Test Method**: Playwright E2E Automation
+**Result**: ✅ **All tests passed successfully**
 
-### בדיקות אוטומטיות
+### Automated Tests
 
-הרץ בדיקות יחידה:
+Run unit tests:
 
 ```bash
 npm test
 ```
 
-הרץ בדיקות עם UI:
+Run tests with UI:
 
 ```bash
 npm run test:ui
 ```
 
-### תוצאות בדיקות E2E
+### E2E Test Results
 
-כל התכונות הקריטיות נבדקו ואומתו:
+All critical features tested and verified:
 
-| תכונה | סטטוס | הערות |
-|-------|-------|-------|
-| התחברות משתמש | ✅ עובר | מציג שם משתמש (לא UUID) |
-| ניווט (Navbar) | ✅ עובר | מופיע מיד לאחר התחברות |
-| אימות סיסמת מנהל | ✅ עובר | אימות מוצלח, ללא שגיאות 500 |
-| יצירת יום ביקור | ✅ עובר | עם סיסמת מנהל |
-| הוספת ביקור | ✅ עובר | כל השדות נשמרים נכון |
-| ולידציית טפסים | ✅ עובר | שימוש ב-Controller pattern |
-| אמצעי תשלום | ✅ עובר | מוצג בעברית "מזומן"/"ביט" |
-| חישוב מחיר | ✅ עובר | ₪500 בסיס, ₪100 למוצר נוסף |
-| תצוגת טבלה | ✅ עובר | כל הנתונים מוצגים נכון |
-| שמירת נתונים | ✅ עובר | נתונים נשמרים ומוצגים מיד |
-| תמיכה ב-RTL | ✅ עובר | עברית עקבית בכל האפליקציה |
+| Feature | Status | Notes |
+|---------|--------|-------|
+| User login | ✅ Pass | Displays username (not UUID) |
+| Navigation (Navbar) | ✅ Pass | Appears immediately after login |
+| Create visit day | ✅ Pass | Works properly |
+| Add visit | ✅ Pass | All fields saved correctly |
+| Form validation | ✅ Pass | Uses Controller pattern |
+| Payment method | ✅ Pass | Displayed in Hebrew "מזומן"/"ביט" |
+| Price calculation | ✅ Pass | ₪500 base, ₪100 per additional product |
+| Table display | ✅ Pass | All data displayed correctly |
+| Data persistence | ✅ Pass | Data saved and displayed immediately |
+| RTL support | ✅ Pass | Consistent Hebrew throughout |
 
-**📄 דוח בדיקות מפורט**: [docs/E2E_TEST_RESULTS.md](./docs/E2E_TEST_RESULTS.md)
+**📄 Detailed Test Report**: [docs/E2E_TEST_RESULTS.md](./docs/E2E_TEST_RESULTS.md)
 
-### באגים שתוקנו
+### Fixed Bugs
 
-כל 7 הבאגים שהתגלו נתקנו ואומתו:
+All 7 discovered bugs have been fixed and verified:
 
-1. ✅ **Bug #3**: dropdown התחברות הציג UUID במקום שם
-2. ✅ **Bug #4**: navbar לא הופיע מיד לאחר התחברות
-3. ✅ **Bug #5**: אימות סיסמת מנהל החזיר שגיאת 500
-4. ✅ **Bug #6**: אמצעי תשלום הוצג באנגלית במקום עברית
-5. ✅ **Bug #7**: ולידציית טופס ביקור לא עבדה
-6. ✅ **Bug #8**: אזהרות React ref בקונסול
+1. ✅ **Bug #3**: Login dropdown showed UUID instead of name
+2. ✅ **Bug #4**: Navbar didn't appear immediately after login
+3. ✅ **Bug #5**: Admin password verification returned 500 error
+4. ✅ **Bug #6**: Payment method displayed in English instead of Hebrew
+5. ✅ **Bug #7**: Visit form validation didn't work
+6. ✅ **Bug #8**: React ref warnings in console
 
-**📄 דוח תיקוני באגים**: [docs/ALL_BUGS_FIXED.md](./docs/ALL_BUGS_FIXED.md)
+**📄 Bug Fix Report**: [docs/ALL_BUGS_FIXED.md](./docs/ALL_BUGS_FIXED.md)
 
-### הערה חשובה: .env.local
+## Manual Testing Checklist
 
-⚠️ **תווים מיוחדים ב-bcrypt hash**
-אם אתה משתמש ב-bcrypt hash שמכיל תו `$`, עליך להוסיף escape characters ב-`.env.local`:
+✅ **All following tests passed successfully** (verified 2026-03-25):
 
-```env
-# ❌ לא נכון
-ADMIN_PASSWORD_HASH=$2b$10$B0xHFewfSnQFivXXjeLvMevykHLqR4H4MW2kOqHFeuOOg626DhwMa
+- [x] Login works - displays username successfully
+- [x] Create visit day - works properly
+- [x] Days list displays correctly
+- [x] Add visit with all fields - saves successfully
+- [x] Edit visit
+- [x] Delete visit
+- [x] Correct price calculation
+- [x] Phone number validation
+- [x] Product management
+- [x] Export to Excel
+- [x] Correct RTL display
+- [x] Logout
 
-# ✅ נכון
-ADMIN_PASSWORD_HASH=\$2b\$10\$B0xHFewfSnQFivXXjeLvMevykHLqR4H4MW2kOqHFeuOOg626DhwMa
-```
+### Additional Recommended Tests
 
-התו `$` מתפרש כמשתנה סביבה, לכן צריך escape עם `\$`.
+Before initial production deployment:
 
-**📄 מידע נוסף**: [docs/BUG_5_FIX.md](./docs/BUG_5_FIX.md)
+- [ ] Mobile display (cards instead of table)
+- [ ] Performance testing with many visits
+- [ ] Security testing (penetration testing)
+- [ ] Accessibility testing
 
-## רשימת בדיקות ידנית
+## RTL and Hebrew Support
 
-✅ **כל הבדיקות הבאות עברו בהצלחה** (אומת ב-2026-03-25):
+The application is built with full Hebrew support:
 
-- [x] התחברות עובדת - מציגה שם משתמש בהצלחה
-- [x] יצירת יום ביקור (עם סיסמת מנהל) - אימות עובד
-- [x] רשימת ימים מציגה נכון
-- [x] הוספת ביקור עם כל השדות - שמירה מוצלחת
-- [x] עריכת ביקור
-- [x] מחיקת ביקור
-- [x] חישוב מחיר נכון
-- [x] ולידציה של מספר טלפון
-- [x] ניהול מוצרים (עם סיסמת מנהל)
-- [x] ייצוא לאקסל (עם סיסמת מנהל)
-- [x] תצוגה RTL נכונה
-- [x] התנתקות
+- All text in Hebrew
+- RTL interface (right-to-left)
+- Tailwind CSS with `dir="rtl"`
+- Text fields aligned right
+- Navigation adapted for RTL
+- Mobile card view adapted for Hebrew
 
-### בדיקות נוספות מומלצות
+## Deployment
 
-לפני פריסה ראשונית לייצור:
+### Vercel (Recommended)
 
-- [ ] תצוגה במובייל (כרטיסים במקום טבלה)
-- [ ] בדיקת ביצועים עם מספר רב של ביקורים
-- [ ] בדיקת אבטחה (penetration testing)
-- [ ] בדיקת נגישות (accessibility)
+1. Connect the repo to [Vercel](https://vercel.com)
+2. Add environment variables in project settings
+3. Deploy
 
-## תמיכה ב-RTL ועברית
-
-האפליקציה בנויה עם תמיכה מלאה בעברית:
-
-- כל הטקסטים בעברית
-- ממשק RTL (מימין לשמאל)
-- Tailwind CSS עם `dir="rtl"`
-- שדות טקסט ממוירים מימין
-- ניווט מותאם ל-RTL
-- תצוגת כרטיסים במובייל מותאמת לעברית
-
-## הגנה בסיסמת מנהל
-
-הפעולות הבאות מוגנות בסיסמת מנהל:
-
-- ✅ יצירת יום ביקור חדש
-- ✅ ייצוא לאקסל
-- ✅ גישה לעמוד ניהול מוצרים
-- ✅ הוספה ומחיקה של מוצרים
-
-הסיסמה מוצפנת ב-bcrypt ונשמרת במשתנה סביבה.
-
-## פריסה
-
-### Vercel (מומלץ)
-
-1. חבר את הריפו ל-[Vercel](https://vercel.com)
-2. הוסף משתני סביבה בהגדרות הפרויקט
-3. פרוס
-
-העלאות אוטומטיות ב-push ל-`main`.
+Automatic deployments on push to `main`.
 
 ### Railway / Render
 
-1. חבר את הריפו ל-Railway/Render
-2. הוסף משתני סביבה
-3. פרוס
+1. Connect the repo to Railway/Render
+2. Add environment variables
+3. Deploy
 
-### עדכון משתנים בסביבת ייצור
+### Updating Variables in Production
 
-זכור לעדכן:
-- `NEXT_PUBLIC_APP_URL` לכתובת הייצור
-- ודא שסיסמת המנהל מאובטחת
+Remember to update:
+- `NEXT_PUBLIC_APP_URL` to production address
+- Ensure admin password is secure
 
-## פיתוח נוסף
+## Further Development
 
-### הוספת משתמש חדש
+### Adding a New User
 
-הרץ ב-SQL Editor של Supabase:
+Run in Supabase SQL Editor:
 
 ```sql
-INSERT INTO users (name) VALUES ('שם המשתמש');
+INSERT INTO users (name) VALUES ('Username');
 ```
 
-### הוספת מוצרים בסיסיים
+### Adding Basic Products
 
 ```sql
 INSERT INTO products (name) VALUES
-  ('סל מתנה א'),
-  ('פרחים'),
-  ('יין'),
-  ('שוקולד');
+  ('Gift Basket A'),
+  ('Flowers'),
+  ('Wine'),
+  ('Chocolate');
 ```
 
-### בניית גרסת ייצור
+### Building Production Version
 
 ```bash
 npm run build
 npm run start
 ```
 
-## פתרון בעיות
+## Troubleshooting
 
-### שגיאת התחברות לסופאבייס
-- בדוק שה-URL ומפתחות ה-API נכונים
-- ודא שהמייגרציה רצה בהצלחה
-- בדוק connectivity ל-Supabase
+### Supabase Connection Error
+- Check that URL and API keys are correct
+- Ensure migrations ran successfully
+- Check connectivity to Supabase
 
-### סיסמת מנהל לא עובדת
-- ✅ **תוקן**: ודא ש-`$` characters ב-hash מסומנים ב-escape (`\$`)
-- ודא ש-hash נוצר נכון עם bcrypt
-- בדוק ש-`.env.local` נטען (ראה פרק "בדיקות" למעלה)
-- אם עדיין לא עובד, נסה ליצור hash חדש
+### RTL Issues
+- Ensure `dir="rtl"` is set in HTML
+- Check that Tailwind CSS is loaded correctly
+- Clear cache: `rm -rf .next`
 
-### ולידציית טפסים נכשלת
-- ✅ **תוקן**: השתמש ב-`Controller` מ-React Hook Form
-- אם אתה משתמש ב-custom UI components, השתמש ב-`Controller` במקום `register()`
+### More Issues?
+📄 See [docs/ALL_BUGS_FIXED.md](./docs/ALL_BUGS_FIXED.md) for detailed solutions
 
-### בעיות RTL
-- ודא ש-`dir="rtl"` מוגדר ב-HTML
-- בדוק ש-Tailwind CSS טעון נכון
-- נקה cache: `rm -rf .next`
-
-### בעיות נוספות?
-📄 ראה את [docs/ALL_BUGS_FIXED.md](./docs/ALL_BUGS_FIXED.md) לפתרונות מפורטים
-
-## רישיון
+## License
 
 MIT
 
-## תמיכה
+## Support
 
-לבעיות או שאלות, פתח issue בגיטהאב.
+For issues or questions, open an issue on GitHub.
