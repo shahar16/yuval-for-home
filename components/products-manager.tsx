@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Product } from '@/lib/types'
 import { createProduct, deleteProduct } from '@/actions/products'
 import {
@@ -20,6 +21,7 @@ interface ProductsManagerProps {
 }
 
 export function ProductsManager({ products }: ProductsManagerProps) {
+  const router = useRouter()
   const [newProductName, setNewProductName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -32,6 +34,7 @@ export function ProductsManager({ products }: ProductsManagerProps) {
     try {
       await createProduct(newProductName)
       setNewProductName('')
+      router.refresh()
     } catch (err: any) {
       setError(err.message || 'שגיאה ביצירת מוצר')
     } finally {
@@ -44,6 +47,7 @@ export function ProductsManager({ products }: ProductsManagerProps) {
 
     try {
       await deleteProduct(productId)
+      router.refresh()
     } catch (err: any) {
       alert(err.message || 'שגיאה במחיקת מוצר')
     }
